@@ -1,6 +1,6 @@
 package view;
 
-//  Importa o Controller para poder chamar o gerente
+
 import control.Control;
 
 // Importa o Model para entender os dados que o Controller devolve
@@ -9,17 +9,13 @@ import model.Medico;
 import model.Leito;
 import model.Internacao;
 
-// 3. Importa as ferramentas de UI (Scanner) e de formatação
+//  Importa as ferramentas de UI e de formatação
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Scanner;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 
-/**
- * * SÓ TEM INTERAÇÃO COM O USUÁRIO (SCANNER E PRINTLN).
- * NÃO TEM LÓGICA DE NEGÓCIO, NÃO GUARDA LISTAS.
- */
 public class Main {
 
     // Ferramentas da View
