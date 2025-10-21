@@ -346,7 +346,7 @@ public class Main {
         }
     }
 
-    // Método para popular o sistema com dados falsos para teste
+    // Método para popular o sistema com dados falsos para teste.
     private static void criarDadosDeTeste() {
         try {
            
