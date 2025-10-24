@@ -1,320 +1,399 @@
 package view;
 
-
-import control.Control;
-
-// Importa o Model para entender os dados que o Controller devolve
-import model.Paciente;
-import model.Medico;
-import model.Leito;
-import model.Internacao;
-
-//  Importa as ferramentas de UI e de formatação
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Scanner;
-import java.text.SimpleDateFormat;
+// Importa tudo que vai ser usado: o controller, as classes do model, o scanner, etc.
+import control.ControlController;
+import java.util.*;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import model.*;
 
 public class Main {
 
-    // Ferramentas da View
-    private static Scanner scanner = new Scanner(System.in);
-    private static SimpleDateFormat formatadorData = new SimpleDateFormat("dd/MM/yyyy");
-    
-    
-    // A View (atendente) precisa de uma referência ao Controller (gerente)
-    // para poder enviar e pedir dados.
-    private static Control controlador = new Control();
+    // Método principal, onde o programa começa
+    public static void main(String[] args) throws ParseException {
+        // 'sc' é pra ler o que o usuário digita no console
+        Scanner sc = new Scanner(System.in);
+        // 'ctrl' é o objeto que vai fazer a ponte com a lógica (cadastrar, buscar, etc)
+        ControlController ctrl = new ControlController();
+        int opcaoPrincipal;
 
-    
-    // Método principal: Inicia o programa
-    public static void main(String[] args) {
-        
-        int opcao = -1; 
-        
-        // Loop principal do menu
-        while (opcao != 0) {
-            exibirMenuPrincipal();
-            
-            try {
-                opcao = Integer.parseInt(scanner.nextLine());
-            } catch (NumberFormatException e) {
-                System.out.println("Erro: Por favor, digite um número.");
-                opcao = -1; // Reseta a opção para não dar loop infinito
-                continue; // Volta ao início do 'while'
+        // Loop principal do menu, pra ficar rodando até o usuário digitar 0
+        do {
+            System.out.println("\n========= MENU PRINCIPAL =========");
+            System.out.println("1 - Gerenciar Internação");
+            System.out.println("2 - Gerenciar Profissionais");
+            System.out.println("3 - Prontuário Eletrônico");
+            System.out.println("0 - Sair");
+            System.out.print("Escolha uma opção: ");
+            opcaoPrincipal = Integer.parseInt(sc.nextLine()); // Lê a opção do usuário
+
+            // 'switch' pra decidir o que fazer com a opção escolhida
+            switch (opcaoPrincipal) {
+                case 1 -> menuInternacao(sc, ctrl); // Chama o método do menu de internação
+                case 2 -> menuProfissionais(sc, ctrl); // Chama o método do menu de profissionais
+                case 3 -> menuProntuario(sc, ctrl); // Chama o método do prontuário
+                case 0 -> System.out.println("Encerrando o sistema...");
+                default -> System.out.println("Opção inválida!");
             }
+        } while (opcaoPrincipal != 0); // Repete enquanto a opção não for 0
 
-            // A View decide qual sub-menu mostrar
+        sc.close(); // Fecha o 'sc' pra não dar problema de recurso aberto
+    }
+
+    
+    // Um método separado só pro menu de Internação (Paciente, Exame, Leito)
+    private static void menuInternacao(Scanner sc, ControlController ctrl) throws ParseException {
+        int opcao;
+        do {
+            System.out.println("\n--- GERENCIAR INTERNAÇÃO ---");
+            System.out.println("1 - Paciente");
+            System.out.println("2 - Exame");
+            System.out.println("3 - Leito");
+            System.out.println("0 - Voltar");
+            System.out.print("Escolha uma opção: ");
+            opcao = Integer.parseInt(sc.nextLine());
+
+            // Switch pra chamar os sub-menus
             switch (opcao) {
-                case 1:
-                    menuGerenciarPacientes();
-                    break;
-                case 2:
-                    menuGerenciarMedicos();
-                    break;
-                case 3:
-                    menuGerenciarLeitos();
-                    break;
-                case 4:
-                    menuGerenciarInternacoes();
-                    break;
-                case 0:
-                    System.out.println("Obrigado por usar o sistema. Saindo...");
-                    break;
-                default:
-                    System.out.println("Opção inválida! Tente novamente.");
+                case 1 -> menuPaciente(sc, ctrl);
+                case 2 -> menuExame(sc, ctrl);
+                case 3 -> menuLeito(sc, ctrl);
+                case 0 -> {} // Se for 0, não faz nada e o loop 'do-while' termina
+                default -> System.out.println("Opção inválida!");
             }
-        }
-        
-        scanner.close(); // Fecha o scanner ao sair
+        } while (opcao != 0);
     }
 
-    //  MENUS DA VIEW 
+    
+    // Método só para as coisas do Paciente (CRUD - Cadastrar, Buscar, Atualizar, Excluir)
+    private static void menuPaciente(Scanner sc, ControlController ctrl) throws ParseException {
+        int opcao;
+        do {
+            System.out.println("\n--- GERENCIAR PACIENTE ---");
+            System.out.println("1 - Buscar paciente por nome");
+            System.out.println("2 - Cadastrar novo paciente");
+            System.out.println("3 - Atualizar paciente");
+            System.out.println("4 - Excluir paciente");
+            System.out.println("0 - Voltar");
+            System.out.print("Escolha uma opção: ");
+            opcao = Integer.parseInt(sc.nextLine());
 
-    private static void exibirMenuPrincipal() {
-        System.out.println("\n--- Sistema de Internação Hospitalar (MVC) ---");
-        System.out.println("1. Gerenciar Pacientes");
-        System.out.println("2. Gerenciar Médicos");
-        System.out.println("3. Gerenciar Leitos");
-        System.out.println("4. Gerenciar Internações");
-        System.out.println("0. Sair");
-        System.out.print("Escolha uma opção: ");
+            switch (opcao) {
+                case 1 -> { // Buscar
+                    System.out.print("Digite o nome do paciente: ");
+                    String nome = sc.nextLine();
+                    // Pede o nome e usa o controller pra buscar na lista
+                    List<Paciente> lista = ctrl.buscarPacientePorNome(nome);
+                    if (lista == null || lista.isEmpty()) {
+                        System.out.println("Nenhum paciente encontrado.");
+                    } else {
+                        // Mostra os pacientes que achou
+                        System.out.println("\n--- RESULTADOS ---");
+                        for (Paciente p : lista) {
+                            System.out.println("Nome: " + p.getNome());
+                            System.out.println("CPF: " + p.getCpf());
+                            System.out.println("Email: " + p.getEmail());
+                            System.out.println("Histórico: " + p.getHistoricoClinico());
+                            System.out.println("-------------------------");
+                        }
+                    }
+                }
+                case 2 -> { // Cadastrar
+                    // Pede todos os dados do paciente novo
+                    System.out.print("Nome: ");
+                    String nome = sc.nextLine();
+                    System.out.print("CPF: ");
+                    String cpf = sc.nextLine();
+                    System.out.print("Email: ");
+                    String email = sc.nextLine();
+                    System.out.print("Data de nascimento (dd/MM/yyyy): ");
+                    String dataStr = sc.nextLine();
+                    // Pega a data que o usuário digitou (string) e transforma em data (Date)
+                    SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
+                    Date dataNascimento = formato.parse(dataStr);
+
+                    System.out.println("Informe os dados do endereço:");
+                    System.out.print("CEP: ");
+                    String cep = sc.nextLine();
+                    System.out.print("Estado: ");
+                    String estado = sc.nextLine();
+                    System.out.print("Cidade: ");
+                    String cidade = sc.nextLine();
+                    System.out.print("Número: ");
+                    String numero = sc.nextLine();
+                    System.out.print("Complemento: ");
+                    String complemento = sc.nextLine();
+                    // Junta os dados do endereço em um objeto 'Endereco'
+                    Endereco endereco = new Endereco(cep, estado, cidade, numero, complemento);
+
+                    System.out.print("Perfil: ");
+                    String perfil = sc.nextLine();
+                    System.out.print("Senha: ");
+                    String senha = sc.nextLine();
+                    System.out.print("Histórico Clínico: ");
+                    String historicoClinico = sc.nextLine();
+
+                    // Cria o objeto Paciente com tudo e manda o controller salvar
+                    Paciente paciente = new Paciente(cpf, nome, email, dataNascimento, endereco, perfil, senha, historicoClinico);
+                    ctrl.cadastrarPaciente(paciente);
+                }
+                case 3 -> { // Atualizar
+                    System.out.print("Digite o CPF do paciente: ");
+                    String cpf = sc.nextLine();
+                    // Pede o CPF pra achar o paciente que vai ser mudado
+                    Paciente p = (Paciente) ctrl.buscarPessoaPorCpf(cpf);
+                    if (p == null) {
+                        System.out.println("Paciente não encontrado!");
+                    } else {
+                        // Pede os novos dados e atualiza lá no controller
+                        System.out.print("Novo nome: ");
+                        p.setNome(sc.nextLine());
+                        System.out.print("Novo email: ");
+                        p.setEmail(sc.nextLine());
+                        System.out.print("Novo histórico clínico: ");
+                        p.setHistoricoClinico(sc.nextLine());
+                        ctrl.atualizarPaciente(p);
+                    }
+                }
+                case 4 -> { // Excluir
+                    System.out.print("Digite o CPF do paciente: ");
+                    String cpf = sc.nextLine();
+                    // Pede o CPF e manda o controller apagar
+                    ctrl.excluirPaciente(cpf);
+                }
+                case 0 -> {}
+                default -> System.out.println("Opção inválida!");
+            }
+        } while (opcao != 0);
     }
 
-    // Pacientes 
-    private static void menuGerenciarPacientes() {
-        System.out.println("\n--- Pacientes ---");
-        System.out.println("1. Cadastrar Novo Paciente");
-        System.out.println("2. Listar Pacientes");
-        System.out.print("Opção: ");
-        
-        String opcao = scanner.nextLine();
-        
-        if (opcao.equals("1")) {
-            cadastrarPaciente();
-        } else if (opcao.equals("2")) {
-            listarPacientes();
+
+    // Outro método, agora só pro menu de Exames
+    private static void menuExame(Scanner sc, ControlController ctrl) throws ParseException {
+        int opcao;
+        do {
+            System.out.println("\n--- GERENCIAR EXAMES ---");
+            System.out.println("1. Cadastrar exame");
+            System.out.println("2. Atualizar resultado de exame");
+            System.out.println("3. Listar exames");
+            System.out.println("4. Excluir exame");
+            System.out.println("0. Voltar");
+            System.out.print("Escolha uma opção: ");
+            opcao = Integer.parseInt(sc.nextLine());
+
+            switch (opcao) {
+                case 1 -> { // Cadastrar Exame
+                    Exame exame = new Exame();
+                    System.out.print("Nome do exame: ");
+                    exame.setNome(sc.nextLine());
+                    System.out.print("Descrição do exame: ");
+                    exame.setDescricao(sc.nextLine());
+
+                    System.out.print("CPF do paciente: ");
+                    String cpfPaciente = sc.nextLine();
+                    // Busca o paciente pelo CPF pra poder ligar o exame a ele
+                    Paciente paciente = (Paciente) ctrl.buscarPessoaPorCpf(cpfPaciente);
+                    if (paciente == null) {
+                        System.out.println("Paciente não encontrado!");
+                        break; // Para a execução do 'case' se não achar
+                    }
+                    exame.setPaciente(paciente);
+
+                    System.out.print("CPF do médico: ");
+                    String cpfMedico = sc.nextLine();
+                    // Busca o médico pra ligar ao exame
+                    Medico medico = (Medico) ctrl.buscarPessoaPorCpf(cpfMedico);
+                    if (medico == null) {
+                        System.out.println("Médico não encontrado!");
+                        break;
+                    }
+                    exame.setMedico(medico);
+
+                    System.out.print("ID da internação: ");
+                    int idInternacao = Integer.parseInt(sc.nextLine());
+                    // Busca a internação pra ligar ao exame
+                    Internacao internacao = ctrl.buscarInternacaoPorId(idInternacao);
+                    if (internacao == null) {
+                        System.out.println("Internação não encontrada!");
+                        break;
+                    }
+                    exame.setInternacao(internacao);
+
+                    // Manda o controller salvar o exame
+                    ctrl.cadastrarExame(exame);
+                }
+                case 2 -> { // Atualizar Resultado
+                    System.out.print("ID do exame: ");
+                    int idExame = Integer.parseInt(sc.nextLine());
+                    System.out.print("Data do resultado (dd/MM/yyyy): ");
+                    String dataStr = sc.nextLine();
+                    SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
+                    java.util.Date data = formato.parse(dataStr);
+                    // Manda o controller atualizar só o resultado
+                    ctrl.atualizarResultadoExame(idExame, data);
+                }
+                case 3 -> ctrl.listarExames(); // Chama o controller pra listar todos
+                case 4 -> { // Excluir
+                    System.out.print("ID do exame: ");
+                    int idExame = Integer.parseInt(sc.nextLine());
+                    ctrl.excluirExame(idExame);
+                }
+                case 0 -> {}
+                default -> System.out.println("Opção inválida.");
+            }
+        } while (opcao != 0);
+    }
+
+    
+    // Método para gerenciar os Leitos
+    private static void menuLeito(Scanner sc, ControlController ctrl) {
+        int opcao;
+        do {
+            System.out.println("\n--- GERENCIAR LEITOS ---");
+            System.out.println("1. Cadastrar leito");
+            System.out.println("2. Atualizar leito");
+            System.out.println("3. Listar leitos disponíveis");
+            System.out.println("4. Excluir leito");
+            System.out.println("0. Voltar");
+            System.out.print("Escolha uma opção: ");
+            opcao = Integer.parseInt(sc.nextLine());
+
+            switch (opcao) {
+                case 1 -> { // Cadastrar
+                    Leito leito = new Leito();
+                    System.out.print("Número do leito: ");
+                    leito.setNumero(Integer.parseInt(sc.nextLine()));
+                    System.out.print("Tipo do leito: ");
+                    leito.setTipo(sc.nextLine());
+                    ctrl.cadastrarLeito(leito);
+                }
+                case 2 -> { // Atualizar
+                    System.out.print("ID do leito: ");
+                    int idLeito = Integer.parseInt(sc.nextLine());
+                    // Busca o leito antes de atualizar
+                    Leito leito = ctrl.buscarLeitoPorId(idLeito);
+                    if (leito == null) {
+                        System.out.println("Leito não encontrado.");
+                        break;
+                    }
+                    // Pede os novos dados
+                    System.out.print("Novo número do leito: ");
+                    leito.setNumero(Integer.parseInt(sc.nextLine()));
+                    System.out.print("Novo tipo do leito: ");
+                    leito.setTipo(sc.nextLine());
+                    System.out.print("Novo status (Disponível/Ocupado): ");
+                    leito.setStatus(sc.nextLine());
+                    ctrl.atualizarLeito(leito);
+                }
+                case 3 -> ctrl.listarLeitosDisponiveis(); // Lista só os disponíveis
+                case 4 -> { // Excluir
+                    System.out.print("ID do leito: ");
+                    int idLeito = Integer.parseInt(sc.nextLine());
+                    ctrl.excluirLeito(idLeito);
+                }
+                case 0 -> {}
+                default -> System.out.println("Opção inválida.");
+            }
+        } while (opcao != 0);
+    }
+
+    
+    // Menu que leva pra outro menu (Medico ou Enfermeiro)
+    private static void menuProfissionais(Scanner sc, ControlController ctrl) throws ParseException {
+        int opcao;
+        do {
+            System.out.println("\n--- GERENCIAR PROFISSIONAIS ---");
+            System.out.println("1 - Médico");
+            System.out.println("2 - Enfermeiro");
+            System.out.println("0 - Voltar");
+            System.out.print("Escolha uma opção: ");
+            opcao = Integer.parseInt(sc.nextLine());
+
+            switch (opcao) {
+                case 1 -> menuMedico(sc, ctrl);
+                case 2 -> menuEnfermeiro(sc, ctrl);
+                case 0 -> {}
+                default -> System.out.println("Opção inválida!");
+            }
+        } while (opcao != 0);
+    }
+
+    // Método só pra cadastrar Médico
+    private static void menuMedico(Scanner sc, ControlController ctrl) throws ParseException {
+        System.out.println("\n--- CADASTRAR MÉDICO ---");
+        // Pede todos os dados (igual no cadastro de paciente)
+        System.out.print("Nome: ");
+        String nome = sc.nextLine();
+        System.out.print("CPF: ");
+        String cpf = sc.nextLine();
+        System.out.print("Email: ");
+        String email = sc.nextLine();
+        System.out.print("Data de nascimento (dd/MM/yyyy): ");
+        String dataStr = sc.nextLine();
+        SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
+        Date dataNascimento = formato.parse(dataStr);
+
+        System.out.println("Informe os dados do endereço:");
+        System.out.print("CEP: "); String cep = sc.nextLine();
+        System.out.print("Estado: "); String estado = sc.nextLine();
+        System.out.print("Cidade: "); String cidade = sc.nextLine();
+        System.out.print("Número: "); String numero = sc.nextLine();
+        System.out.print("Complemento: "); String complemento = sc.nextLine();
+        Endereco endereco = new Endereco(cep, estado, cidade, numero, complemento);
+
+        System.out.print("Perfil: "); String perfil = sc.nextLine();
+        System.out.print("Senha: "); String senha = sc.nextLine();
+        // Dados específicos do Médico
+        System.out.print("CRM: "); String crm = sc.nextLine();
+        System.out.print("Especialidade: "); String especialidade = sc.nextLine();
+
+        // Cria o objeto Medico e manda salvar
+        Medico medico = new Medico(cpf, nome, email, dataNascimento, endereco, perfil, senha, crm, especialidade);
+        ctrl.cadastrarMedico(medico);
+    }
+
+    // Método só pra cadastrar Enfermeiro
+    private static void menuEnfermeiro(Scanner sc, ControlController ctrl) throws ParseException {
+        System.out.println("\n--- CADASTRAR ENFERMEIRO ---");
+        System.out.print("Nome: "); String nome = sc.nextLine();
+        System.out.print("CPF: "); String cpf = sc.nextLine();
+        System.out.print("Email: "); String email = sc.nextLine();
+        System.out.print("Data de nascimento (dd/MM/yyyy): "); String dataStr = sc.nextLine();
+        SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
+        Date dataNascimento = formato.parse(dataStr);
+
+        System.out.println("Informe os dados do endereço:");
+        System.out.print("CEP: "); String cep = sc.nextLine();
+        System.out.print("Estado: "); String estado = sc.nextLine();
+        System.out.print("Cidade: "); String cidade = sc.nextLine();
+        System.out.print("Número: "); String numero = sc.nextLine();
+        System.out.print("Complemento: "); String complemento = sc.nextLine();
+        Endereco endereco = new Endereco(cep, estado, cidade, numero, complemento);
+
+        System.out.print("Perfil: "); String perfil = sc.nextLine();
+        System.out.print("Senha: "); String senha = sc.nextLine();
+        // Dado específico do Enfermeiro
+        System.out.print("COREN: "); String coren = sc.nextLine();
+
+        // Cria o objeto Enfermeiro e manda salvar
+        Enfermeiro enfermeiro = new Enfermeiro(cpf, nome, email, dataNascimento, endereco, perfil, senha, coren);
+        ctrl.cadastrarEnfermeiro(enfermeiro);
+    }
+
+    
+    // Menu final, pra consultar o prontuário
+    private static void menuProntuario(Scanner sc, ControlController ctrl) {
+        System.out.println("\n--- PRONTUÁRIO ELETRÔNICO ---");
+        System.out.print("Digite o CPF do paciente: ");
+        String cpf = sc.nextLine();
+
+        // Verifica se o paciente existe antes de tentar mostrar o prontuário
+        Paciente p = (Paciente) ctrl.buscarPessoaPorCpf(cpf);
+        if (p != null) {
+            // Pede o CPF e chama a função de exibir
+            ctrl.exibirProntuario(cpf);
         } else {
-            System.out.println("Opção inválida.");
-        }
-    }
-    
-    private static void cadastrarPaciente() {
-        System.out.println("\n--- Cadastro de Paciente ---");
-        try {
-            //  View coleta os dados do usuário
-            System.out.print("Nome: ");
-            String nome = scanner.nextLine();
-            System.out.print("CPF: ");
-            String cpf = scanner.nextLine();
-            System.out.print("Email: ");
-            String email = scanner.nextLine();
-            System.out.print("Endereço: ");
-            String endereco = scanner.nextLine();
-            System.out.print("Data Nasc. (dd/MM/yyyy): ");
-            Date dataNasc = formatadorData.parse(scanner.nextLine());
-            System.out.print("Histórico Clínico: ");
-            String historico = scanner.nextLine();
-
-            //  View envia os dados para o CONTROLLER
-            boolean sucesso = controlador.cadastrarPaciente(nome, cpf, email, dataNasc, endereco, historico);
-
-            //  View informa o resultado ao usuário
-            if (sucesso) {
-                System.out.println(">>> Paciente cadastrado com sucesso! <<<");
-            } else {
-                System.out.println(">>> Erro ao cadastrar paciente. <<<");
-            }
-            
-        } catch (ParseException e) {
-            System.out.println("Erro no formato da data! Use dd/MM/yyyy. Cadastro cancelado.");
-        }
-    }
-
-    private static void listarPacientes() {
-        System.out.println("\n--- Lista de Pacientes ---");
-        
-        // View PEDE a lista ao CONTROLLER
-        ArrayList<Paciente> pacientes = controlador.listarPacientes();
-        
-        if (pacientes.isEmpty()) {
-            System.out.println("Nenhum paciente cadastrado.");
-            return; 
-        }
-        
-        //  View MOSTRA a lista para o usuário
-        for (int i = 0; i < pacientes.size(); i++) {
-            Paciente p = pacientes.get(i);
-            System.out.println(i + ": " + p.toString()); 
-        }
-    }
-
-    // Médicos 
-    private static void menuGerenciarMedicos() {
-        System.out.println("\n--- Médicos ---");
-        System.out.println("1. Cadastrar Novo Médico");
-        System.out.println("2. Listar Médicos");
-        System.out.print("Opção: ");
-        
-        String opcao = scanner.nextLine();
-        
-        if (opcao.equals("1")) {
-            // Lógica para coletar dados do médico e chamar controlador.cadastrarMedico(...)
-            System.out.println("Funcionalidade de cadastrar médico a ser implementada.");
-        } else if (opcao.equals("2")) {
-            listarMedicos();
-        }
-    }
-
-    private static void listarMedicos() {
-        System.out.println("\n--- Lista de Médicos ---");
-        ArrayList<Medico> medicos = controlador.listarMedicos(); // 1. Pede
-        if (medicos.isEmpty()) {
-            System.out.println("Nenhum médico cadastrado.");
-            return;
-        }
-        for (int i = 0; i < medicos.size(); i++) { // 2. Mostra
-            System.out.println(i + ": " + medicos.get(i).toString());
-        }
-    }
-    
-    // Leitos 
-    private static void menuGerenciarLeitos() {
-        System.out.println("\n--- Leitos ---");
-        System.out.println("1. Cadastrar Novo Leito");
-        System.out.println("2. Listar Todos os Leitos");
-        System.out.print("Opção: ");
-        
-        String opcao = scanner.nextLine();
-        
-        if (opcao.equals("1")) {
-            // Lógica para coletar dados e chamar controlador.cadastrarLeito(...)
-             System.out.println("Funcionalidade de cadastrar leito a ser implementada.");
-        } else if (opcao.equals("2")) {
-            listarLeitos();
-        }
-    }
-    
-    private static void listarLeitos() {
-        System.out.println("\n--- Lista de Todos os Leitos ---");
-        ArrayList<Leito> leitos = controlador.listarLeitos(); // 1. Pede
-        if (leitos.isEmpty()) {
-            System.out.println("Nenhum leito cadastrado.");
-            return;
-        }
-        for (Leito l : leitos) { // 2. Mostra
-            System.out.println(l.toString());
-        }
-    }
-    
-    //  Internações 
-    
-    private static void menuGerenciarInternacoes() {
-        System.out.println("\n--- Internações ---");
-        System.out.println("1. Registrar Nova Internação");
-        System.out.println("2. Listar Internações");
-        System.out.print("Opção: ");
-        
-        String opcao = scanner.nextLine();
-        
-        if (opcao.equals("1")) {
-            registrarInternacao();
-        } else if (opcao.equals("2")) {
-            listarInternacoes();
-        }
-    }
-    
-    private static void registrarInternacao() {
-        System.out.println("\n--- Registrar Nova Internação ---");
-        
-        // --- ETAPA 1: Escolher Paciente ---
-        System.out.println("Selecione o paciente:");
-        ArrayList<Paciente> pacientes = controlador.listarPacientes();
-        if (pacientes.isEmpty()) {
-            System.out.println("Nenhum paciente cadastrado. Cancele e cadastre um.");
-            return;
-        }
-        for (int i = 0; i < pacientes.size(); i++) {
-            System.out.println(i + ": " + pacientes.get(i).getNome());
-        }
-        System.out.print("Digite o ÍNDICE do paciente: ");
-        int idxPaciente = Integer.parseInt(scanner.nextLine());
-
-        //  Escolher Médico
-        System.out.println("\nSelecione o médico:");
-        ArrayList<Medico> medicos = controlador.listarMedicos();
-        if (medicos.isEmpty()) {
-            System.out.println("Nenhum médico cadastrado. Cancele e cadastre um.");
-             return;
-        }
-        for (int i = 0; i < medicos.size(); i++) {
-            System.out.println(i + ": " + medicos.get(i).getNome());
-        }
-        System.out.print("Digite o ÍNDICE do médico: ");
-        int idxMedico = Integer.parseInt(scanner.nextLine());
-        
-        //  Escolher Leito 
-        System.out.println("\nSelecione um leito LIVRE:");
-        // A View NÃO sabe como filtrar, ela pede ao Controller
-        ArrayList<Leito> leitosLivres = controlador.listarLeitosLivres(); 
-        
-        if (leitosLivres.isEmpty()) {
-            System.out.println(">>> ERRO: Nenhum leito livre disponível! <<<");
-            return;
-        }
-        for (int i = 0; i < leitosLivres.size(); i++) {
-            System.out.println(i + ": " + leitosLivres.get(i).toString());
-        }
-        System.out.print("Digite o ÍNDICE do leito livre: ");
-        int idxLeitoLivre = Integer.parseInt(scanner.nextLine());
-
-        // Coletar dados restantes ---
-        try {
-            System.out.print("Data de Entrada (dd/MM/yyyy): ");
-            Date dataEntrada = formatadorData.parse(scanner.nextLine());
-            System.out.print("Diagnóstico: ");
-            String diagnostico = scanner.nextLine();
-            
-            //  View envia tudo para o Controller ---
-            boolean sucesso = controlador.registrarInternacao(idxPaciente, idxMedico, idxLeitoLivre, dataEntrada, diagnostico);
-            
-            if(sucesso) {
-                 System.out.println("\n>>> Internação registrada com SUCESSO! <<<");
-            } else {
-                System.out.println("\n>>> Erro ao registrar internação (Ex: índice inválido). <<<");
-            }
-
-        } catch (ParseException e) {
-            System.out.println("Erro no formato da data! Internação cancelada.");
-        } catch (NumberFormatException e) {
-            System.out.println("Erro: Índice deve ser um número. Internação cancelada.");
-        }
-    }
-    
-    private static void listarInternacoes() {
-        System.out.println("\n--- Histórico de Internações ---");
-        
-        ArrayList<Internacao> internacoes = controlador.listarInternacoes();
-        
-        if (internacoes.isEmpty()) {
-            System.out.println("Nenhuma internação registrada.");
-            return;
-        }
-        
-        for (Internacao i : internacoes) {
-            System.out.println("---------------------------------");
-            System.out.println("Paciente: " + i.getPaciente().getNome());
-            System.out.println("Médico: " + i.getMedico().getNome());
-            System.out.println("Leito: " + i.getLeito().getNumero());
-            System.out.println("Data Entrada: " + formatadorData.format(i.getDataEntrada()));
-            System.out.println("Diagnóstico: " + i.getDiagnostico());
-            
-            if (i.getDataAlta() != null) {
-                System.out.println("Data Alta: " + formatadorData.format(i.getDataAlta()));
-            } else {
-                System.out.println("Status: Paciente Internado");
-            }
+            System.out.println("Paciente não encontrado!");
         }
     }
 }
