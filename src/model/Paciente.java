@@ -1,31 +1,37 @@
 package model;
 
-import java.util.Date;
-
-// "Paciente" herda de "Pessoa"
+// Classe Paciente. Como um Médico ou Enfermeiro, o Paciente TAMBÉM é uma Pessoa.
+// Por isso, a gente estende ('extends') a classe Pessoa, herdando todos os dados básicos (CPF, nome, etc.).
 public class Paciente extends Pessoa {
-    
-    // O RF003 pede "histórico clínico"
-    private String historicoClinico;
+    // Atributo exclusivo do Paciente.
+    private String historicoClinico; // O histórico de saúde, doenças prévias, alergias, etc. (Deixei como String pra ser simples).
 
-    // Construtor que chama o construtor da classe "Pai" (Pessoa)
-    public Paciente(String nome, String cpf, String email, Date dataNascimento, String endereco, String historicoClinico) {
-        super(nome, cpf, email, dataNascimento, endereco);
+    // Construtor vazio. Pra criar o objeto e ir setando os dados depois.
+    public Paciente() {}
+
+    // Construtor completo. Pra criar o Paciente com todas as informações de uma vez.
+    public Paciente(String cpf, String nome, String email, java.util.Date dataNascimento, Endereco endereco, String perfil, String senha, String historicoClinico) {
+        // Chamo o 'super(...)' pra inicializar todos os dados da Pessoa.
+        super(cpf, nome, email, dataNascimento, endereco, perfil, senha);
+        // E seto o atributo que é só dele.
         this.historicoClinico = historicoClinico;
     }
 
-    // Getters e Setters específicos
+    // Getter para pegar o histórico clínico.
     public String getHistoricoClinico() {
         return historicoClinico;
     }
 
+    // Setter para alterar o histórico clínico.
     public void setHistoricoClinico(String historicoClinico) {
         this.historicoClinico = historicoClinico;
     }
 
-    // sobrescrevendo o método toString() para facilitar a exibicao
+    // Sobrescrevi o toString().
+    // Assim, quando eu printar o objeto Paciente, ele mostra o Nome e o Histórico.
     @Override
     public String toString() {
-        return "Paciente: " + getNome() + " (CPF: " + getCpf() + ")";
+        // Uso getNome() porque 'nome' tá privado lá na classe Pessoa, mas é herdado.
+        return getNome() + " - " + historicoClinico;
     }
 }

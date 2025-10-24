@@ -1,18 +1,33 @@
 package model;
 
-// Classe para a entidade "Leito" 
+// Classe Leito. Ela representa uma cama/leito no hospital.
 public class Leito {
-    private int numero;
-    private String tipo; // Ex: UTI, Quarto 
-    private boolean ocupado; // status livre ou ocupado
+    private int idLeito; // ID único do leito (chave primária no banco).
+    private int numero; // O número real do leito (tipo 101, 2B, etc. Mas aqui tá como int).
+    private String tipo; // Tipo de leito, como "Enfermaria", "UTI", "Particular".
+    private String status; // Status do leito: "Ocupado", "Vago", "Em manutenção".
 
-    public Leito(int numero, String tipo) {
+    // Construtor vazio. Pra quando eu crio o objeto e seto as coisas depois.
+    public Leito() {}
+
+    // Construtor completo. Pra criar o leito com todos os dados de uma vez.
+    public Leito(int idLeito, int numero, String tipo, String status) {
+        this.idLeito = idLeito;
         this.numero = numero;
         this.tipo = tipo;
-        this.ocupado = false; // Todo leito começa livre
+        this.status = status;
     }
 
-    // Getters e Setters
+    // Getters e Setters, pra acessar e modificar os dados de forma controlada.
+
+    public int getIdLeito() {
+        return idLeito;
+    }
+
+    public void setIdLeito(int idLeito) {
+        this.idLeito = idLeito;
+    }
+
     public int getNumero() {
         return numero;
     }
@@ -29,18 +44,19 @@ public class Leito {
         this.tipo = tipo;
     }
 
-    public boolean isOcupado() {
-        return ocupado;
+    public String getStatus() {
+        return status;
     }
 
-    public void setOcupado(boolean ocupado) {
-        this.ocupado = ocupado;
+    public void setStatus(String status) {
+        this.status = status;
     }
 
+    // Sobrescrevi o toString().
+    // Ele retorna uma string bem completa pra eu saber qual leito é, o tipo e se tá livre ou não.
+    // Exemplo: "Leito 105 (UTI) - Ocupado"
     @Override
     public String toString() {
-        // Operador ternário um if ou else simples
-        String status = ocupado ? "OCUPADO" : "LIVRE"; 
-        return "Leito nº: " + numero + " (Tipo: " + tipo + ") - Status: " + status;
+        return "Leito " + numero + " (" + tipo + ") - " + status;
     }
 }
