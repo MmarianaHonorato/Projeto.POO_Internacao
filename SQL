@@ -1,1 +1,186 @@
+-- =====================================================
+-- CRIAÇÃO DO BANCO DE DADOS
+-- =====================================================
+CREATE DATABASE hospital_ucb;
+USE hospital_ucb;
+
+-- =====================================================
+-- TABELA ENDERECO
+-- =====================================================
+CREATE TABLE ENDERECO (
+    ID_Endereco INT PRIMARY KEY AUTO_INCREMENT,
+    CEP VARCHAR(9) NOT NULL,
+    Estado VARCHAR(2) NOT NULL,
+    Cidade VARCHAR(100) NOT NULL,
+    Numero VARCHAR(10) NOT NULL,
+    Complemento VARCHAR(100)
+);
+
+-- =====================================================
+-- TABELA PESSOA
+-- =====================================================
+CREATE TABLE PESSOA (
+    CPF VARCHAR(14) PRIMARY KEY,
+    Nome VARCHAR(255) NOT NULL,
+    Email VARCHAR(255) NOT NULL UNIQUE,
+    Data_Nascimento DATE NOT NULL,
+    ID_Endereco INT,
+    Perfil VARCHAR(50) NOT NULL,
+    Senha VARCHAR(255) NOT NULL,
+    FOREIGN KEY (ID_Endereco) REFERENCES ENDERECO(ID_Endereco)
+);
+
+-- =====================================================
+-- TABELA PACIENTE
+-- =====================================================
+CREATE TABLE PACIENTE (
+    CPF_Paciente VARCHAR(14) PRIMARY KEY,
+    Historico_Clinico TEXT,
+    FOREIGN KEY (CPF_Paciente) REFERENCES PESSOA(CPF)
+);
+
+-- =====================================================
+-- TABELA MEDICO
+-- =====================================================
+CREATE TABLE MEDICO (
+    CPF_Medico VARCHAR(14) PRIMARY KEY,
+    CRM VARCHAR(20) NOT NULL,
+    Especialidade VARCHAR(100),
+    FOREIGN KEY (CPF_Medico) REFERENCES PESSOA(CPF)
+);
+
+-- =====================================================
+-- TABELA ENFERMEIRO
+-- =====================================================
+CREATE TABLE ENFERMEIRO (
+    CPF_Enfermeiro VARCHAR(14) PRIMARY KEY,
+    Coren VARCHAR(20) NOT NULL,
+    FOREIGN KEY (CPF_Enfermeiro) REFERENCES PESSOA(CPF)
+);
+
+-- =====================================================
+-- TABELA LEITO
+-- =====================================================
+CREATE TABLE LEITO (
+    ID_Leito INT PRIMARY KEY AUTO_INCREMENT,
+    Numero VARCHAR(10) NOT NULL,
+    Tipo VARCHAR(50) NOT NULL,
+    Status ENUM('Disponível', 'Não Disponível') NOT NULL DEFAULT 'Disponível'
+);
+
+-- =====================================================
+-- TABELA INTERNACAO
+-- =====================================================
+CREATE TABLE INTERNACAO (
+    ID_Internacao INT PRIMARY KEY AUTO_INCREMENT,
+    Data_Entrada DATETIME NOT NULL,
+    Data_Alta DATETIME,
+    Diagnostico TEXT,
+    CPF_Paciente VARCHAR(14),
+    CPF_Medico VARCHAR(14),
+    ID_Leito INT,
+    FOREIGN KEY (CPF_Paciente) REFERENCES PACIENTE(CPF_Paciente),
+    FOREIGN KEY (CPF_Medico) REFERENCES MEDICO(CPF_Medico),
+    FOREIGN KEY (ID_Leito) REFERENCES LEITO(ID_Leito)
+);
+
+-- =====================================================
+-- TABELA EXAME
+-- =====================================================
+CREATE TABLE EXAME (
+    ID_Exame INT PRIMARY KEY AUTO_INCREMENT,
+    Nome VARCHAR(100) NOT NULL,
+    Descricao TEXT,
+    Data_Pedido DATETIME NOT NULL,
+    Data_Resultado DATETIME,
+    CPF_Paciente VARCHAR(14),
+    CPF_Medico VARCHAR(14),
+    ID_Internacao INT,
+    FOREIGN KEY (CPF_Paciente) REFERENCES PACIENTE(CPF_Paciente),
+    FOREIGN KEY (CPF_Medico) REFERENCES MEDICO(CPF_Medico),
+    FOREIGN KEY (ID_Internacao) REFERENCES INTERNACAO(ID_Internacao)
+);
+
+-- =====================================================
+-- INSERÇÕES DE DADOS
+-- =====================================================
+
+-- ENDEREÇOS (10 registros)
+INSERT INTO ENDERECO (CEP, Estado, Cidade, Numero, Complemento) VALUES
+('70000-000', 'DF', 'Brasília', '10', 'Bloco A'),
+('71900-100', 'DF', 'Águas Claras', '25', 'Apto 101'),
+('72200-200', 'DF', 'Ceilândia', '58', 'Casa B'),
+('70800-300', 'DF', 'Asa Norte', '12', 'Bloco C'),
+('70900-400', 'DF', 'Asa Sul', '99', 'Apto 303'),
+('72100-500', 'DF', 'Taguatinga', '15', 'Casa Verde'),
+('72300-600', 'DF', 'Samambaia', '44', 'Bloco D'),
+('72400-700', 'DF', 'Guará', '88', 'Lote 22'),
+('72500-800', 'DF', 'Recanto das Emas', '33', 'Quadra 103'),
+('72600-900', 'DF', 'Planaltina', '77', 'Casa 2');
+
+-- PESSOAS (10 registros)
+INSERT INTO PESSOA (CPF, Nome, Email, Data_Nascimento, ID_Endereco, Perfil, Senha) VALUES
+('111.111.111-11', 'Ana Silva', 'ana.silva@email.com', '1990-01-10', 1, 'Paciente', '123'),
+('222.222.222-22', 'Dr. Ricardo Souza', 'ricardo.souza@email.com', '1980-03-15', 2, 'Médico', '123'),
+('333.333.333-33', 'João Pereira', 'joao.pereira@email.com', '1985-07-20', 3, 'Enfermeiro', '123'),
+('444.444.444-44', 'Maria Oliveira', 'maria.oliveira@email.com', '1992-04-05', 4, 'Paciente', '123'),
+('555.555.555-55', 'Dr. Paulo Mendes', 'paulo.mendes@email.com', '1975-09-09', 5, 'Médico', '123'),
+('666.666.666-66', 'Lucas Costa', 'lucas.costa@email.com', '1995-11-11', 6, 'Enfermeiro', '123'),
+('777.777.777-77', 'Juliana Alves', 'juliana.alves@email.com', '2000-05-12', 7, 'Paciente', '123'),
+('888.888.888-88', 'Dr. Fernanda Lima', 'fernanda.lima@email.com', '1982-02-22', 8, 'Médico', '123'),
+('999.999.999-99', 'Marcos Silva', 'marcos.silva@email.com', '1998-08-18', 9, 'Paciente', '123'),
+('000.000.000-00', 'Administrador', 'admin@email.com', '1970-01-01', 10, 'Administrador', 'admin');
+
+-- PACIENTES (4 registros)
+INSERT INTO PACIENTE (CPF_Paciente, Historico_Clinico) VALUES
+('111.111.111-11', 'Histórico de asma.'),
+('444.444.444-44', 'Hipertensão controlada.'),
+('777.777.777-77', 'Diabetes tipo 2.'),
+('999.999.999-99', 'Sem comorbidades.');
+
+-- MÉDICOS (3 registros)
+INSERT INTO MEDICO (CPF_Medico, CRM, Especialidade) VALUES
+('222.222.222-22', 'CRM-DF12345', 'Cardiologia'),
+('555.555.555-55', 'CRM-DF67890', 'Clínico Geral'),
+('888.888.888-88', 'CRM-DF54321', 'Pediatria');
+
+-- ENFERMEIROS (2 registros)
+INSERT INTO ENFERMEIRO (CPF_Enfermeiro, Coren) VALUES
+('333.333.333-33', 'COREN-DF1111'),
+('666.666.666-66', 'COREN-DF2222');
+
+-- LEITOS (10 registros)
+INSERT INTO LEITO (Numero, Tipo, Status) VALUES
+('101', 'Apartamento', 'Disponível'),
+('102', 'Apartamento', 'Disponível'),
+('103', 'Enfermaria', 'Não Disponível'),
+('104', 'UTI', 'Disponível'),
+('105', 'UTI', 'Não Disponível'),
+('106', 'Enfermaria', 'Disponível'),
+('107', 'Apartamento', 'Disponível'),
+('108', 'UTI', 'Disponível'),
+('109', 'Enfermaria', 'Não Disponível'),
+('110', 'Apartamento', 'Disponível');
+
+-- INTERNAÇÕES (5 registros)
+INSERT INTO INTERNACAO (Data_Entrada, Diagnostico, CPF_Paciente, CPF_Medico, ID_Leito) VALUES
+('2025-09-23 14:30:00', 'Insuficiência cardíaca', '111.111.111-11', '222.222.222-22', 1),
+('2025-09-25 10:00:00', 'Infecção urinária', '444.444.444-44', '555.555.555-55', 2),
+('2025-09-28 09:15:00', 'Pneumonia', '777.777.777-77', '888.888.888-88', 3),
+('2025-10-01 16:45:00', 'Apendicite', '999.999.999-99', '222.222.222-22', 4),
+('2025-10-10 11:00:00', 'Crise asmática', '111.111.111-11', '555.555.555-55', 5);
+
+-- EXAMES (10 registros)
+INSERT INTO EXAME (Nome, Descricao, Data_Pedido, Data_Resultado, CPF_Paciente, CPF_Medico, ID_Internacao) VALUES
+('Hemograma Completo', 'Avalia as células sanguíneas.', '2025-09-23 15:00:00', '2025-09-23 18:00:00', '111.111.111-11', '222.222.222-22', 1),
+('Raio-X do Tórax', 'Imagem pulmonar.', '2025-09-23 16:00:00', NULL, '111.111.111-11', '222.222.222-22', 1),
+('Eletrocardiograma', 'Avalia o ritmo cardíaco.', '2025-09-25 11:00:00', '2025-09-25 12:00:00', '444.444.444-44', '555.555.555-55', 2),
+('Urina tipo I', 'Exame de urina simples.', '2025-09-25 11:30:00', '2025-09-25 15:00:00', '444.444.444-44', '555.555.555-55', 2),
+('Tomografia', 'Imagem abdominal.', '2025-09-28 09:30:00', NULL, '777.777.777-77', '888.888.888-88', 3),
+('PCR COVID-19', 'Detecção do vírus SARS-CoV-2.', '2025-10-01 17:00:00', '2025-10-02 10:00:00', '999.999.999-99', '222.222.222-22', 4),
+('Glicemia', 'Nível de glicose no sangue.', '2025-10-10 11:30:00', '2025-10-10 13:00:00', '111.111.111-11', '555.555.555-55', 5),
+('Colesterol Total', 'Dosagem de lipídios.', '2025-10-10 12:00:00', NULL, '111.111.111-11', '555.555.555-55', 5),
+('Hemoglobina Glicada', 'Controle da diabetes.', '2025-09-28 10:00:00', NULL, '777.777.777-77', '888.888.888-88', 3),
+('Sorologia HIV', 'Detecção de anticorpos HIV.', '2025-10-01 18:00:00', NULL, '999.999.999-99', '222.222.222-22', 4);
+
 
