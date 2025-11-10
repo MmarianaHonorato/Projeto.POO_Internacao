@@ -218,6 +218,21 @@ public class ControlController {
     }
 
     // ===================== PRONTUÁRIO =====================
+    /* 
+ * Pequeno acoplamento entre controle e visão através do prontuário.
+ *
+ * O método exibirProntuario() deve apenas retornar as informações, e não exibi-las.
+ * Ao imprimir diretamente no console (System.out.println), o controller se torna
+ * dependente do modo de exibição da View, criando um acoplamento indesejado.
+ *
+ * Além disso, essa responsabilidade extra reduz a coesão da classe, pois o controller
+ * passa a desempenhar duas funções: controlar o fluxo de dados e exibir informações — 
+ * o que deveria ser papel exclusivo da camada de visão (View).
+ *
+ * 💡 Solução: retornar os dados por meio de um objeto (ex: ProntuarioDTO) e deixar
+ * que a View escolha como exibi-los. Assim, o controller permanece coeso e independente.
+ */
+
     public void exibirProntuario(String cpfPaciente) {
         Paciente pac = buscarPacientePorCpf(cpfPaciente);
         if (pac == null) {
@@ -249,3 +264,4 @@ public class ControlController {
         }
     }
 }
+
